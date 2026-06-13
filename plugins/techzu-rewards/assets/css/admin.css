@@ -1,0 +1,284 @@
+.tz-rewards-admin {
+    --tz-admin-bg: #f6f7fb;
+    --tz-admin-card: #ffffff;
+    --tz-admin-border: #dcdcde;
+    --tz-admin-text: #1d2327;
+    --tz-admin-muted: #646970;
+    --tz-admin-accent: #5a3f2b;
+}
+
+.tz-rewards-admin-hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    align-items: center;
+    margin: 18px 0 16px;
+    padding: 24px;
+    color: #ffffff;
+    background: linear-gradient(135deg, #2b2118, #6b4b32);
+    border-radius: 18px;
+    box-shadow: 0 14px 38px rgba(43, 33, 24, 0.16);
+}
+
+.tz-rewards-admin-hero h1 {
+    margin: 4px 0 8px;
+    color: #ffffff;
+    font-size: 32px;
+    line-height: 1.1;
+}
+
+.tz-rewards-admin-hero p {
+    max-width: 860px;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.tz-rewards-admin-hero__eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.tz-rewards-admin-hero__badge {
+    flex: 0 0 auto;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.26);
+    border-radius: 999px;
+    font-weight: 700;
+}
+
+.tz-rewards-tabs {
+    margin-bottom: 18px;
+}
+
+.tz-rewards-admin__intro {
+    max-width: 980px;
+}
+
+.tz-rewards-admin__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 20px;
+    margin: 20px 0 28px;
+}
+
+.tz-rewards-panel {
+    background: var(--tz-admin-card);
+    border: 1px solid var(--tz-admin-border);
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.045);
+}
+
+.tz-rewards-panel--wide {
+    grid-column: 1 / -1;
+}
+
+.tz-rewards-panel h2 {
+    margin-top: 0;
+    color: var(--tz-admin-text);
+}
+
+.tz-rewards-fields-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px 18px;
+}
+
+.tz-rewards-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.tz-rewards-field label,
+.tz-rewards-customer-card label {
+    font-weight: 600;
+    color: var(--tz-admin-text);
+}
+
+.tz-rewards-field input[type="text"],
+.tz-rewards-field input[type="number"],
+.tz-rewards-field select,
+.tz-rewards-field textarea,
+.tz-rewards-customer-card input,
+.tz-rewards-customer-card select {
+    max-width: 100%;
+    border-color: #c3c4c7;
+    border-radius: 8px;
+}
+
+.tz-rewards-field--checkbox {
+    flex-direction: row;
+    align-items: center;
+}
+
+.tz-rewards-field--checkbox label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tz-rewards-checkbox-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 10px;
+    padding: 12px;
+    background: #f6f7f7;
+    border-radius: 12px;
+}
+
+.tz-rewards-checkbox-list label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.tz-repeater {
+    margin-top: 14px;
+}
+
+.tz-repeater__table th,
+.tz-repeater__table td {
+    vertical-align: middle;
+}
+
+.tz-repeater__table input,
+.tz-repeater__table textarea {
+    width: 100%;
+}
+
+.tz-rewards-preview {
+    display: grid;
+    gap: 10px;
+    padding: 16px;
+    background: #f6f7f7;
+    border-radius: 12px;
+}
+
+.tz-rewards-preview h3 {
+    margin: 0;
+}
+
+.tz-rewards-preview code {
+    display: inline-block;
+    width: fit-content;
+    padding: 6px 9px;
+    background: #ffffff;
+    border: 1px solid #dcdcde;
+    border-radius: 8px;
+}
+
+.tz-rewards-customer-search {
+    display: flex;
+    gap: 10px;
+    max-width: 720px;
+    margin: 16px 0 20px;
+}
+
+.tz-rewards-customer-search input[type="search"] {
+    flex: 1 1 auto;
+    border-radius: 8px;
+}
+
+.tz-rewards-customer-list {
+    display: grid;
+    gap: 16px;
+}
+
+.tz-rewards-customer-card {
+    padding: 18px;
+    background: #fbfbfc;
+    border: 1px solid #dcdcde;
+    border-radius: 14px;
+}
+
+.tz-rewards-customer-card__main {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.tz-rewards-customer-card h3 {
+    margin: 0 0 4px;
+}
+
+.tz-rewards-customer-card p {
+    margin: 0;
+    color: var(--tz-admin-muted);
+}
+
+.tz-rewards-customer-card__stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.tz-rewards-customer-card__stats span {
+    min-width: 112px;
+    padding: 10px 12px;
+    text-align: center;
+    background: #ffffff;
+    border: 1px solid #e3e3e5;
+    border-radius: 12px;
+    color: var(--tz-admin-muted);
+    font-size: 12px;
+}
+
+.tz-rewards-customer-card__stats strong {
+    display: block;
+    color: var(--tz-admin-text);
+    font-size: 16px;
+}
+
+.tz-rewards-customer-card__form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    align-items: end;
+    margin-top: 16px;
+}
+
+.tz-rewards-customer-card__form label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.tz-rewards-customer-card__history {
+    margin-top: 14px;
+}
+
+.tz-rewards-guide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin: 18px 0;
+}
+
+.tz-rewards-guide-grid article {
+    padding: 16px;
+    background: #f6f7f7;
+    border-radius: 12px;
+}
+
+.tz-rewards-guide-grid h3 {
+    margin-top: 0;
+}
+
+@media (max-width: 782px) {
+    .tz-rewards-admin-hero,
+    .tz-rewards-customer-card__main {
+        flex-direction: column;
+    }
+
+    .tz-rewards-customer-card__stats {
+        justify-content: flex-start;
+    }
+}

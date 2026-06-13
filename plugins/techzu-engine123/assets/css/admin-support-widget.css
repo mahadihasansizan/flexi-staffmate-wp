@@ -1,0 +1,83 @@
+/* Techzu Engine — Site + Need help dashboard widgets */
+
+.tz-engine-support-root {
+  padding: 14px 16px 18px;
+  background: var(--tz-bg-page, #f8fafc) !important;
+}
+
+.tz-engine-support-root > .tz-engine-alert {
+  margin: 0 0 14px;
+}
+
+.tz-engine-support-hub {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tz-engine-support-hub__panel {
+  padding: 1.25rem 1.35rem 1.35rem;
+  background: var(--tz-surface, #fff);
+}
+
+.tz-engine-support-hub__title {
+  margin: 0 0 1rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--tz-text, #1e293b);
+}
+
+.tz-engine-support-hub__panel--site .tz-engine-support-hub__meta {
+  margin-bottom: 0;
+}
+
+.tz-engine-support-hub__meta {
+  margin-bottom: 1.25rem;
+}
+
+.tz-engine-meta-value--status {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.65rem;
+}
+
+.tz-engine-meta-sublabel {
+  font-size: 13px;
+  color: var(--tz-text-muted, #64748b);
+}
+
+.tz-engine-support-form__fields {
+  margin: 0 0 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--tz-border, #e2e8f0);
+}
+
+.tz-engine-support-hub__panel--support .tz-engine-support-form__fields {
+  padding-top: 0;
+  border-top: none;
+}
+
+.tz-engine-support-hub__footer {
+  margin: 0;
+}
+
+.tz-engine-support-hub__hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--tz-text-muted, #64748b);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.tz-engine-support-hub__hint a {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--tz-primary, #2563eb);
+  text-decoration: none;
+}
+
+.tz-engine-support-hub__hint a:hover {
+  text-decoration: underline;
+}

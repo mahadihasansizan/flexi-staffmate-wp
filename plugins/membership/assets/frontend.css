@@ -1,0 +1,124 @@
+.membership-login-wrap {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 20px;
+    background: linear-gradient(135deg, #f6f7ff 0%, #eef6ff 100%);
+}
+
+.membership-login-card {
+    width: 100%;
+    max-width: 430px;
+    padding: 32px;
+    border-radius: 22px;
+    background: #fff;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .12);
+}
+
+.membership-login-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.membership-login-brand span {
+    display: inline-flex;
+    width: 54px;
+    height: 54px;
+    border-radius: 18px;
+    background: #3858e9;
+    color: #fff;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 24px;
+}
+
+.membership-login-brand h1 {
+    margin: 0 0 4px;
+    font-size: 28px;
+    line-height: 1.1;
+}
+
+.membership-login-brand p {
+    margin: 0;
+    color: #646970;
+}
+
+.membership-login-card label {
+    display: block;
+    margin-bottom: 7px;
+    font-weight: 650;
+}
+
+.membership-login-card input[type="text"],
+.membership-login-card input[type="password"] {
+    width: 100%;
+    min-height: 46px;
+    padding: 10px 12px;
+    border: 1px solid #dcdcde;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+
+.membership-login-card .login-remember label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.membership-login-card .button,
+.membership-login-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: 0 18px;
+    border-radius: 10px;
+    border: 1px solid #3858e9;
+    background: #3858e9;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.membership-login-card .button:hover,
+.membership-login-button:hover {
+    color: #fff;
+    opacity: .92;
+}
+
+.membership-login-button-secondary {
+    background: #fff;
+    color: #3858e9;
+}
+
+.membership-login-button-secondary:hover {
+    color: #3858e9;
+}
+
+.membership-login-message {
+    padding: 12px 14px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    font-weight: 650;
+}
+
+.membership-login-message-error {
+    background: #fcf0f1;
+    color: #8a2424;
+}
+
+.membership-login-message-success {
+    background: #edfaef;
+    color: #0a6b28;
+}
+
+.membership-login-links,
+.membership-login-actions {
+    margin-bottom: 0;
+}

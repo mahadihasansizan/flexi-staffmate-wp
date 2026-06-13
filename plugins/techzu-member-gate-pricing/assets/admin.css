@@ -1,0 +1,22 @@
+.tmgmp-admin .widefat input[type="text"],
+.tmgmp-admin .widefat input[type="number"],
+.tmgmp-product-table input[type="number"] {
+    width: 100%;
+    max-width: 220px;
+}
+.tmgmp-admin .widefat select,
+.tmgmp-product-table select {
+    min-width: 190px;
+}
+.tmgmp-login-wrap {
+    max-width: 420px;
+    margin: 40px auto;
+    padding: 28px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+}
+.tmgmp-login-wrap input[type="text"],
+.tmgmp-login-wrap input[type="password"] {
+    width: 100%;
+}

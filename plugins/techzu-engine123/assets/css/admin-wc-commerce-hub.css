@@ -1,0 +1,153 @@
+/* Techzu Engine — WooCommerce commerce hub (layout; tokens from admin-ui) */
+
+.tz-engine-wc-hub--wp-dashboard {
+  padding: 14px 16px 18px;
+  background: var(--tz-bg-page, #f8fafc) !important;
+}
+
+.tz-engine-wc-hub--wc-home {
+  margin: 0 0 20px;
+  padding: 0 20px;
+  max-width: 100%;
+}
+
+.tz-engine-wc-hub__shell {
+  padding: 1.25rem 1.35rem 1.15rem;
+  background: var(--tz-surface, #fff);
+}
+
+.tz-engine-wc-hub--wc-home .tz-engine-wc-hub__shell {
+  box-shadow: var(--tz-shadow-md, 0 4px 14px rgba(15, 23, 42, 0.08));
+}
+
+.tz-engine-wc-hub__head {
+  margin-bottom: 1rem;
+}
+
+.tz-engine-wc-hub__headline {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--tz-text, #1e293b);
+}
+
+.tz-engine-wc-hub__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.tz-engine-wc-hub__actions--bottom {
+  justify-content: flex-start;
+  margin-bottom: 0.85rem;
+}
+
+.tz-engine-wc-hub__tiles {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media screen and (max-width: 782px) {
+  .tz-engine-wc-hub__actions--bottom {
+    width: 100%;
+  }
+}
+
+.tz-engine-wc-hub__tile {
+  border-radius: var(--tz-radius-sm, 10px);
+  padding: 1.1rem 1.15rem;
+  border: 1px solid var(--tz-border, #e2e8f0);
+}
+
+.tz-engine-wc-hub__tile--today {
+  background: var(--tz-surface-muted, #f1f5f9);
+}
+
+.tz-engine-wc-hub__tile--month {
+  background: var(--tz-surface-accent, #eff6ff);
+  border-color: #bfdbfe;
+}
+
+.tz-engine-wc-hub__eyebrow {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--tz-text-soft, #94a3b8);
+  margin-bottom: 0.65rem;
+}
+
+.tz-engine-wc-hub__eyebrow--accent {
+  color: #60a5fa;
+}
+
+.tz-engine-wc-hub__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem 1.25rem;
+  align-items: end;
+}
+
+.tz-engine-wc-hub__metric {
+  min-width: 0;
+}
+
+.tz-engine-wc-hub__metric .tz-engine-wc-hub__stat-lg {
+  word-break: break-word;
+}
+
+.tz-engine-wc-hub__stat-lg {
+  margin: 0;
+  font-size: 1.65rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--tz-text, #1e293b);
+}
+
+.tz-engine-wc-hub__stat-lg--accent {
+  color: #1e3a8a;
+}
+
+.tz-engine-wc-hub__stat-lg--price {
+  font-size: 1.35rem;
+}
+
+.tz-engine-wc-hub__stat-lg--price .woocommerce-Price-amount {
+  font-weight: inherit;
+}
+
+.tz-engine-wc-hub__stat-caption {
+  margin: 0.25rem 0 0;
+  font-size: 13px;
+  color: var(--tz-text-muted, #64748b);
+}
+
+.tz-engine-wc-hub__tile--month .tz-engine-wc-hub__stat-caption {
+  color: #3b82f6;
+}
+
+.tz-engine-wc-hub__foot {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--tz-border, #e2e8f0);
+}
+
+.tz-engine-wc-hub__source {
+  margin: 0;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--tz-text-soft, #94a3b8);
+  max-width: none;
+}
+
+@media screen and (max-width: 520px) {
+  .tz-engine-wc-hub__metrics {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+}
