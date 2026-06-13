@@ -139,6 +139,10 @@ class Calculator {
      * @return array<int,array<string,float|int|string>>
      */
     public function get_available_redemptions( $points_balance, $cart_subtotal = null ) {
+        if ( 'continuous' === $this->settings->get( 'redemption_mode', 'continuous' ) ) {
+            return $this->get_continuous_redemptions( $points_balance, $cart_subtotal );
+        }
+
         $tiers     = array();
         $subtotal  = is_null( $cart_subtotal ) ? null : (float) $cart_subtotal;
         $all_tiers = $this->get_redemption_tiers( true );
@@ -163,6 +167,69 @@ class Calculator {
         }
 
         return (array) apply_filters( 'tz_rewards_available_redemptions', $tiers, $points_balance, $cart_subtotal, $this->settings->all() );
+    }
+
+    /**
+     * Get continuous redemption options such as every 150 points = S$5 off.
+     *
+     * @param int        $points_balance Current balance.
+     * @param float|null $cart_subtotal Cart subtotal.
+     * @return array<int,array<string,float|int|string>>
+     */
+    public function get_continuous_redemptions( $points_balance, $cart_subtotal = null ) {
+        $points_balance = max( 0, (int) $points_balance );
+        $step_points    = max( 1, (int) $this->settings->get( 'redemption_step_points', 150 ) );
+        $step_discount  = max( 0.01, (float) $this->settings->get( 'redemption_step_discount', 5 ) );
+        $max_steps      = max( 0, (int) $this->settings->get( 'redemption_max_generated_steps', 0 ) );
+        $safety_cap     = (int) apply_filters( 'tz_rewards_continuous_redemption_safety_cap', 200 );
+
+        $possible_steps = (int) floor( $points_balance / $step_points );
+        if ( null !== $cart_subtotal ) {
+            $possible_steps = min( $possible_steps, (int) floor( max( 0, (float) $cart_subtotal ) / $step_discount ) );
+        }
+
+        if ( $max_steps > 0 ) {
+            $possible_steps = min( $possible_steps, $max_steps );
+        }
+
+        $possible_steps = min( $possible_steps, max( 1, $safety_cap ) );
+        $tiers          = array();
+
+        for ( $step = 1; $step <= $possible_steps; $step++ ) {
+            $points  = $step * $step_points;
+            $voucher = $step * $step_discount;
+
+            $tiers[ $points ] = array(
+                'points'  => $points,
+                'voucher' => $voucher,
+                'label'   => $this->format_discount_label( $voucher ),
+            );
+        }
+
+        return (array) apply_filters( 'tz_rewards_available_redemptions', $tiers, $points_balance, $cart_subtotal, $this->settings->all() );
+    }
+
+    /**
+     * Return rows for the public programme table.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    public function get_redemption_display_tiers() {
+        return $this->get_redemption_tiers( true );
+    }
+
+    /**
+     * Format a discount amount for labels.
+     *
+     * @param float $amount Discount amount.
+     * @return string
+     */
+    public function format_discount_label( $amount ) {
+        if ( function_exists( 'wc_price' ) ) {
+            return wp_strip_all_tags( wc_price( (float) $amount ) );
+        }
+
+        return '$' . number_format( (float) $amount, 2 );
     }
 
     /**

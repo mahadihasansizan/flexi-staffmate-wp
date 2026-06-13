@@ -8,8 +8,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class Tier_Manager {
-    const USER_META_BIRTHDAY    = 'tz_rewards_birthday';
-    const USER_META_MANUAL_TIER = 'tz_rewards_manual_tier';
+    const USER_META_BIRTHDAY        = 'tz_rewards_birthday';
+    const USER_META_MANUAL_TIER     = 'tz_rewards_manual_tier';
+    const USER_META_LAST_AUTO_TIER  = 'tz_rewards_last_auto_tier';
 
     /**
      * Settings instance.
@@ -25,6 +26,123 @@ class Tier_Manager {
      */
     public function __construct( Settings $settings ) {
         $this->settings = $settings;
+    }
+
+    /**
+     * Register hooks for automatic tier assignment and syncing.
+     *
+     * @return void
+     */
+    public function hooks() {
+        add_action( 'user_register', array( $this, 'assign_default_tier_on_registration' ), 20 );
+        add_action( 'woocommerce_created_customer', array( $this, 'assign_default_tier_on_registration' ), 20 );
+        add_action( 'woocommerce_order_status_changed', array( $this, 'maybe_sync_tier_after_order_status' ), 30, 4 );
+        add_action( 'woocommerce_order_refunded', array( $this, 'maybe_sync_tier_after_refund' ), 30, 2 );
+    }
+
+    /**
+     * Store Bronze/default tier when a customer account is created.
+     *
+     * @param int $user_id User ID.
+     * @return void
+     */
+    public function assign_default_tier_on_registration( $user_id ) {
+        $user_id = absint( $user_id );
+        if ( $user_id <= 0 || '' !== get_user_meta( $user_id, self::USER_META_LAST_AUTO_TIER, true ) ) {
+            return;
+        }
+
+        $tier = $this->get_customer_tier( $user_id );
+        update_user_meta( $user_id, self::USER_META_LAST_AUTO_TIER, sanitize_key( $tier['key'] ) );
+        do_action( 'tz_rewards_customer_tier_assigned', $user_id, $tier );
+    }
+
+    /**
+     * Sync tier after an order status change that may affect rolling 12-month spend.
+     *
+     * @param int       $order_id Order ID.
+     * @param string    $old_status Old status.
+     * @param string    $new_status New status.
+     * @param \WC_Order $order Order object.
+     * @return void
+     */
+    public function maybe_sync_tier_after_order_status( $order_id, $old_status, $new_status, $order ) {
+        unset( $order_id, $old_status );
+
+        if ( ! $order instanceof \WC_Order ) {
+            return;
+        }
+
+        $user_id = (int) $order->get_user_id();
+        if ( $user_id <= 0 ) {
+            return;
+        }
+
+        $statuses = $this->settings->get( 'tier_order_statuses', array( 'processing', 'completed' ) );
+        if ( ! is_array( $statuses ) ) {
+            $statuses = array( 'processing', 'completed' );
+        }
+
+        if ( in_array( $new_status, $statuses, true ) || in_array( $new_status, array( 'cancelled', 'failed', 'refunded' ), true ) ) {
+            $this->sync_customer_tier( $user_id, 'order_status_' . sanitize_key( $new_status ) );
+        }
+    }
+
+    /**
+     * Sync tier after a refund.
+     *
+     * @param int $order_id Order ID.
+     * @param int $refund_id Refund ID.
+     * @return void
+     */
+    public function maybe_sync_tier_after_refund( $order_id, $refund_id ) {
+        unset( $refund_id );
+
+        if ( ! function_exists( 'wc_get_order' ) ) {
+            return;
+        }
+
+        $order = wc_get_order( $order_id );
+        if ( ! $order instanceof \WC_Order ) {
+            return;
+        }
+
+        $user_id = (int) $order->get_user_id();
+        if ( $user_id > 0 ) {
+            $this->sync_customer_tier( $user_id, 'order_refund' );
+        }
+    }
+
+    /**
+     * Compare stored tier with current calculated tier and notify on changes.
+     *
+     * @param int    $user_id User ID.
+     * @param string $context Sync context.
+     * @return array<string,mixed> Current tier.
+     */
+    public function sync_customer_tier( $user_id, $context = 'sync' ) {
+        $user_id = absint( $user_id );
+        $current = $this->get_customer_tier( $user_id );
+
+        if ( $user_id <= 0 ) {
+            return $current;
+        }
+
+        $current_key = sanitize_key( isset( $current['key'] ) ? $current['key'] : '' );
+        $old_key     = sanitize_key( get_user_meta( $user_id, self::USER_META_LAST_AUTO_TIER, true ) );
+
+        if ( '' === $old_key ) {
+            update_user_meta( $user_id, self::USER_META_LAST_AUTO_TIER, $current_key );
+            return $current;
+        }
+
+        if ( $current_key !== $old_key ) {
+            $old_tier = $this->get_tier_by_key( $old_key );
+            update_user_meta( $user_id, self::USER_META_LAST_AUTO_TIER, $current_key );
+            do_action( 'tz_rewards_customer_tier_updated', $user_id, $old_tier, $current, sanitize_key( $context ) );
+        }
+
+        return $current;
     }
 
     /**
@@ -285,13 +403,31 @@ class Tier_Manager {
      * @return void
      */
     public function set_manual_tier( $user_id, $tier_key ) {
-        $tier_key = sanitize_key( $tier_key );
-        if ( '' === $tier_key || ! $this->get_tier_by_key( $tier_key ) ) {
-            delete_user_meta( absint( $user_id ), self::USER_META_MANUAL_TIER );
+        $user_id = absint( $user_id );
+        if ( $user_id <= 0 ) {
             return;
         }
 
-        update_user_meta( absint( $user_id ), self::USER_META_MANUAL_TIER, $tier_key );
+        $before  = $this->get_customer_tier( $user_id );
+        $tier_key = sanitize_key( $tier_key );
+        $context  = 'manual_tier_set';
+
+        if ( '' === $tier_key || ! $this->get_tier_by_key( $tier_key ) ) {
+            delete_user_meta( $user_id, self::USER_META_MANUAL_TIER );
+            $context = 'manual_tier_removed';
+        } else {
+            update_user_meta( $user_id, self::USER_META_MANUAL_TIER, $tier_key );
+        }
+
+        $after      = $this->get_customer_tier( $user_id );
+        $before_key = sanitize_key( isset( $before['key'] ) ? $before['key'] : '' );
+        $after_key  = sanitize_key( isset( $after['key'] ) ? $after['key'] : '' );
+
+        update_user_meta( $user_id, self::USER_META_LAST_AUTO_TIER, $after_key );
+
+        if ( $before_key !== $after_key ) {
+            do_action( 'tz_rewards_customer_tier_updated', $user_id, $before, $after, $context );
+        }
     }
 
     /**

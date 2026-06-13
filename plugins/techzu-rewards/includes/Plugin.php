@@ -9,6 +9,7 @@ use Techzu\Rewards\Rewards\Birthday_Discount_Manager;
 use Techzu\Rewards\Rewards\Calculator;
 use Techzu\Rewards\Rewards\Maintenance;
 use Techzu\Rewards\Rewards\Order_Manager;
+use Techzu\Rewards\Rewards\Notifications_Manager;
 use Techzu\Rewards\Rewards\Points_Manager;
 use Techzu\Rewards\Rewards\Redemption_Manager;
 use Techzu\Rewards\Rewards\Tier_Manager;
@@ -100,15 +101,18 @@ class Plugin {
         $orders       = new Order_Manager( $settings, $points, $calculator, $redemption, $logger );
         $display      = new Display( $settings, $points, $calculator, $redemption, $tiers, $birthday );
         $admin_page   = new Settings_Page( $settings, $calculator, $points, $tiers );
-        $maintenance  = new Maintenance( $points );
-        $elementor    = new Elementor();
+        $maintenance    = new Maintenance( $points );
+        $notifications  = new Notifications_Manager( $settings, $points, $tiers );
+        $elementor      = new Elementor();
 
         $redemption->hooks();
         $birthday->hooks();
         $orders->hooks();
+        $tiers->hooks();
         $display->hooks();
         $admin_page->hooks();
         $maintenance->hooks();
+        $notifications->hooks();
         $elementor->hooks();
     }
 
@@ -123,7 +127,7 @@ class Plugin {
         }
 
         echo '<div class="notice notice-error"><p>';
-        echo esc_html__( 'Techzu Rewards for WooCommerce requires WooCommerce to be installed and active.', 'techzu-rewards' );
+        echo esc_html__( 'elegantbliss Rewards System requires WooCommerce to be installed and active.', 'techzu-rewards' );
         echo '</p></div>';
     }
 }

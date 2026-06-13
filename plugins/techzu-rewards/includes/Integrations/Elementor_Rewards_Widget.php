@@ -21,7 +21,7 @@ class Elementor_Rewards_Widget extends \Elementor\Widget_Base {
      * @return string
      */
     public function get_title() {
-        return __( 'Techzu Rewards', 'techzu-rewards' );
+        return __( 'ElegantBliss Rewards', 'techzu-rewards' );
     }
 
     /**

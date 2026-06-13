@@ -83,6 +83,10 @@ class Points_Manager {
             );
         }
 
+        if ( 0 !== $diff ) {
+            do_action( 'tz_rewards_points_manually_adjusted', $user_id, $diff, $target, $note );
+        }
+
         return $this->get_balance( $user_id );
     }
 
@@ -248,9 +252,80 @@ class Points_Manager {
         if ( $expired > 0 ) {
             $this->save_lots( $user_id, $lots );
             update_user_meta( $user_id, self::USER_META_KEY, $this->calculate_lot_balance( $lots ) );
+            do_action( 'tz_rewards_points_expired', $user_id, $expired );
         }
 
         return $expired;
+    }
+
+    /**
+     * Get active point lots expiring within a number of days and not already notified.
+     *
+     * @param int  $user_id User ID.
+     * @param int  $days Number of days to look ahead.
+     * @param bool $only_unsent Whether to exclude lots already notified.
+     * @return array<int,array<string,mixed>>
+     */
+    public function get_expiring_lots( $user_id, $days = 30, $only_unsent = true ) {
+        $user_id = absint( $user_id );
+        if ( $user_id <= 0 ) {
+            return array();
+        }
+
+        $this->maybe_migrate_legacy_balance( $user_id );
+        $lots      = $this->get_lots( $user_id );
+        $now_ts    = $this->now_timestamp();
+        $cutoff_ts = $now_ts + ( max( 1, absint( $days ) ) * DAY_IN_SECONDS );
+        $matches   = array();
+
+        foreach ( $lots as $lot ) {
+            $remaining  = isset( $lot['remaining'] ) ? absint( $lot['remaining'] ) : 0;
+            $expires_at = isset( $lot['expires_at'] ) ? (string) $lot['expires_at'] : '';
+
+            if ( $remaining <= 0 || '' === $expires_at ) {
+                continue;
+            }
+
+            if ( $only_unsent && ! empty( $lot['expiry_notice_sent_at'] ) ) {
+                continue;
+            }
+
+            $expiry_ts = strtotime( $expires_at . ' UTC' );
+            if ( false === $expiry_ts || $expiry_ts <= $now_ts || $expiry_ts > $cutoff_ts ) {
+                continue;
+            }
+
+            $matches[] = $lot;
+        }
+
+        return $matches;
+    }
+
+    /**
+     * Mark point lots as having received an expiry-soon email.
+     *
+     * @param int              $user_id User ID.
+     * @param array<int,mixed> $lot_ids Lot IDs.
+     * @return void
+     */
+    public function mark_expiry_notice_sent( $user_id, $lot_ids ) {
+        $user_id = absint( $user_id );
+        if ( $user_id <= 0 || ! is_array( $lot_ids ) || empty( $lot_ids ) ) {
+            return;
+        }
+
+        $ids  = array_map( 'sanitize_text_field', $lot_ids );
+        $lots = $this->get_lots( $user_id );
+        $now  = $this->now_mysql();
+
+        foreach ( $lots as $index => $lot ) {
+            $id = isset( $lot['id'] ) ? sanitize_text_field( $lot['id'] ) : '';
+            if ( '' !== $id && in_array( $id, $ids, true ) ) {
+                $lots[ $index ]['expiry_notice_sent_at'] = $now;
+            }
+        }
+
+        $this->save_lots( $user_id, $lots );
     }
 
     /**

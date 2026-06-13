@@ -54,6 +54,10 @@ class Settings {
             'points_expiry_months'     => 12,
             'non_stacking_enabled'     => 'yes',
             'block_coupons_when_reward_active' => 'yes',
+            'redemption_mode'          => 'continuous',
+            'redemption_step_points'   => 150,
+            'redemption_step_discount' => 5,
+            'redemption_max_generated_steps' => 0,
 
             // Kept for backward compatibility with the original build.
             'bonus_match_mode'         => 'highest_matched',
@@ -169,6 +173,32 @@ class Settings {
             'frontend_muted'           => '#6f675e',
             'frontend_border_radius'   => 14,
             'frontend_max_width'       => 1080,
+            'email_notifications_enabled' => 'yes',
+            'email_welcome_enabled'       => 'yes',
+            'email_points_earned_enabled' => 'yes',
+            'email_points_used_enabled'   => 'yes',
+            'email_tier_updated_enabled'  => 'yes',
+            'email_points_expiring_enabled' => 'yes',
+            'email_points_expired_enabled'  => 'yes',
+            'email_manual_adjustment_enabled' => 'yes',
+            'email_points_expiry_days'    => 30,
+            'email_brand_title'           => 'Elegant Bliss Rewards',
+            'email_subject_welcome'       => 'Welcome to Elegant Bliss Rewards',
+            'email_subject_points_earned' => 'You earned {points} {points_label}',
+            'email_subject_points_used'   => 'You used {points} {points_label}',
+            'email_subject_tier_updated'  => 'Your membership is now {tier}',
+            'email_subject_points_expiring' => '{points} {points_label} expire soon',
+            'email_subject_points_expired'  => '{points} {points_label} expired',
+            'email_subject_manual_adjustment' => 'Your Bliss Points balance was updated',
+            'email_intro_welcome'         => 'Your Elegant Bliss account is now enrolled in Bronze Bliss. Start shopping to earn Bliss Points on eligible purchases.',
+            'email_intro_points_earned'   => 'Good news - your latest order earned new Bliss Points.',
+            'email_intro_points_used'     => 'Your Bliss Points were used for a reward voucher on your order.',
+            'email_intro_tier_updated'    => 'Congratulations - your membership tier has been updated.',
+            'email_intro_points_expiring' => 'Some of your Bliss Points will expire soon. Use them before the expiry date.',
+            'email_intro_points_expired'  => 'Some of your Bliss Points have expired according to the programme expiry rule.',
+            'email_intro_manual_adjustment' => 'An administrator updated your Bliss Points balance.',
+            'email_footer_text'           => 'You can view your rewards anytime from My Account > Rewards.',
+
             'debug_log'                => 'no',
         );
     }
@@ -191,8 +221,19 @@ class Settings {
      * @return array<string,mixed>
      */
     public static function normalize( $input ) {
-        $defaults = self::defaults();
-        $input    = wp_parse_args( is_array( $input ) ? $input : array(), $defaults );
+        $defaults  = self::defaults();
+        $raw_input = is_array( $input ) ? $input : array();
+        $input     = wp_parse_args( $raw_input, $defaults );
+
+        if ( isset( $raw_input['redemption_tiers_present'] ) && ! isset( $raw_input['redemption_tiers'] ) ) {
+            $input['redemption_tiers'] = array();
+        }
+        if ( isset( $raw_input['membership_tiers_present'] ) && ! isset( $raw_input['membership_tiers'] ) ) {
+            $input['membership_tiers'] = array();
+        }
+        if ( isset( $raw_input['faq_items_present'] ) && ! isset( $raw_input['faq_items'] ) ) {
+            $input['faq_items'] = array();
+        }
 
         $output = array(
             'enabled'                  => self::sanitize_toggle( $input['enabled'] ),
@@ -208,6 +249,10 @@ class Settings {
             'points_expiry_months'     => max( 0, (int) $input['points_expiry_months'] ),
             'non_stacking_enabled'     => self::sanitize_toggle( $input['non_stacking_enabled'] ),
             'block_coupons_when_reward_active' => self::sanitize_toggle( $input['block_coupons_when_reward_active'] ),
+            'redemption_mode'          => in_array( $input['redemption_mode'], array( 'continuous', 'fixed' ), true ) ? $input['redemption_mode'] : $defaults['redemption_mode'],
+            'redemption_step_points'   => max( 1, (int) $input['redemption_step_points'] ),
+            'redemption_step_discount' => max( 0.01, (float) $input['redemption_step_discount'] ),
+            'redemption_max_generated_steps' => max( 0, (int) $input['redemption_max_generated_steps'] ),
 
             'bonus_match_mode'         => in_array( $input['bonus_match_mode'], array( 'highest_matched', 'exact_match' ), true ) ? $input['bonus_match_mode'] : $defaults['bonus_match_mode'],
             'bonus_value_type'         => in_array( $input['bonus_value_type'], array( 'total_points', 'bonus_points' ), true ) ? $input['bonus_value_type'] : $defaults['bonus_value_type'],
@@ -252,6 +297,32 @@ class Settings {
             'frontend_muted'           => self::sanitize_color( $input['frontend_muted'], $defaults['frontend_muted'] ),
             'frontend_border_radius'   => max( 0, (int) $input['frontend_border_radius'] ),
             'frontend_max_width'       => max( 320, (int) $input['frontend_max_width'] ),
+            'email_notifications_enabled' => self::sanitize_toggle( $input['email_notifications_enabled'] ),
+            'email_welcome_enabled'       => self::sanitize_toggle( $input['email_welcome_enabled'] ),
+            'email_points_earned_enabled' => self::sanitize_toggle( $input['email_points_earned_enabled'] ),
+            'email_points_used_enabled'   => self::sanitize_toggle( $input['email_points_used_enabled'] ),
+            'email_tier_updated_enabled'  => self::sanitize_toggle( $input['email_tier_updated_enabled'] ),
+            'email_points_expiring_enabled' => self::sanitize_toggle( $input['email_points_expiring_enabled'] ),
+            'email_points_expired_enabled'  => self::sanitize_toggle( $input['email_points_expired_enabled'] ),
+            'email_manual_adjustment_enabled' => self::sanitize_toggle( $input['email_manual_adjustment_enabled'] ),
+            'email_points_expiry_days'    => max( 1, (int) $input['email_points_expiry_days'] ),
+            'email_brand_title'           => sanitize_text_field( $input['email_brand_title'] ),
+            'email_subject_welcome'       => sanitize_text_field( $input['email_subject_welcome'] ),
+            'email_subject_points_earned' => sanitize_text_field( $input['email_subject_points_earned'] ),
+            'email_subject_points_used'   => sanitize_text_field( $input['email_subject_points_used'] ),
+            'email_subject_tier_updated'  => sanitize_text_field( $input['email_subject_tier_updated'] ),
+            'email_subject_points_expiring' => sanitize_text_field( $input['email_subject_points_expiring'] ),
+            'email_subject_points_expired'  => sanitize_text_field( $input['email_subject_points_expired'] ),
+            'email_subject_manual_adjustment' => sanitize_text_field( $input['email_subject_manual_adjustment'] ),
+            'email_intro_welcome'         => sanitize_textarea_field( $input['email_intro_welcome'] ),
+            'email_intro_points_earned'   => sanitize_textarea_field( $input['email_intro_points_earned'] ),
+            'email_intro_points_used'     => sanitize_textarea_field( $input['email_intro_points_used'] ),
+            'email_intro_tier_updated'    => sanitize_textarea_field( $input['email_intro_tier_updated'] ),
+            'email_intro_points_expiring' => sanitize_textarea_field( $input['email_intro_points_expiring'] ),
+            'email_intro_points_expired'  => sanitize_textarea_field( $input['email_intro_points_expired'] ),
+            'email_intro_manual_adjustment' => sanitize_textarea_field( $input['email_intro_manual_adjustment'] ),
+            'email_footer_text'           => sanitize_textarea_field( $input['email_footer_text'] ),
+
             'debug_log'                => self::sanitize_toggle( $input['debug_log'] ),
         );
 
@@ -261,13 +332,13 @@ class Settings {
         if ( '' === $output['point_label_singular'] ) {
             $output['point_label_singular'] = $defaults['point_label_singular'];
         }
-        if ( empty( $output['redemption_tiers'] ) ) {
+        if ( empty( $output['redemption_tiers'] ) && ! isset( $raw_input['redemption_tiers_present'] ) ) {
             $output['redemption_tiers'] = $defaults['redemption_tiers'];
         }
-        if ( empty( $output['membership_tiers'] ) ) {
+        if ( empty( $output['membership_tiers'] ) && ! isset( $raw_input['membership_tiers_present'] ) ) {
             $output['membership_tiers'] = $defaults['membership_tiers'];
         }
-        if ( empty( $output['faq_items'] ) ) {
+        if ( empty( $output['faq_items'] ) && ! isset( $raw_input['faq_items_present'] ) ) {
             $output['faq_items'] = $defaults['faq_items'];
         }
 

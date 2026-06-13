@@ -84,8 +84,8 @@ class Settings_Page {
      */
     public function register_menu() {
         add_menu_page(
-            __( 'Techzu Rewards', 'techzu-rewards' ),
-            __( 'Techzu Rewards', 'techzu-rewards' ),
+            __( 'ElegantBliss Rewards', 'techzu-rewards' ),
+            __( 'ElegantBliss Rewards', 'techzu-rewards' ),
             'manage_woocommerce',
             $this->menu_slug,
             array( $this, 'render_page' ),
@@ -223,7 +223,7 @@ class Settings_Page {
             <div class="tz-rewards-admin-hero">
                 <div>
                     <p class="tz-rewards-admin-hero__eyebrow"><?php esc_html_e( 'WooCommerce loyalty programme', 'techzu-rewards' ); ?></p>
-                    <h1><?php esc_html_e( 'Techzu Rewards', 'techzu-rewards' ); ?></h1>
+                    <h1><?php esc_html_e( 'ElegantBliss Rewards', 'techzu-rewards' ); ?></h1>
                     <p><?php esc_html_e( 'Manage points, reward vouchers, membership tiers, birthday perks, programme copy, customer balances and documentation from one simple app.', 'techzu-rewards' ); ?></p>
                 </div>
                 <div class="tz-rewards-admin-hero__badge"><?php echo esc_html( 'v' . TZ_REWARDS_VERSION ); ?></div>
@@ -330,8 +330,14 @@ class Settings_Page {
                 </section>
 
                 <section class="tz-rewards-panel tz-rewards-panel--wide">
-                    <h2><?php esc_html_e( 'Reward voucher tiers', 'techzu-rewards' ); ?></h2>
-                    <p class="description"><?php esc_html_e( 'Add, edit, disable or delete the fixed point-to-discount rewards shown on the programme page and checkout.', 'techzu-rewards' ); ?></p>
+                    <h2><?php esc_html_e( 'Reward voucher conversion', 'techzu-rewards' ); ?></h2>
+                    <p class="description"><?php esc_html_e( 'Default client rule: every 150 Bliss Points gives S$5 off, and the same conversion continues for larger balances. Fixed rows below control the public display table and can also be used as the checkout rule when mode is set to Fixed tiers only.', 'techzu-rewards' ); ?></p>
+                    <div class="tz-rewards-fields-grid">
+                        <?php $this->select_field( 'redemption_mode', __( 'Checkout redemption mode', 'techzu-rewards' ), $settings['redemption_mode'], array( 'continuous' => __( 'Continuous conversion: every step repeats', 'techzu-rewards' ), 'fixed' => __( 'Fixed tiers only', 'techzu-rewards' ) ) ); ?>
+                        <?php $this->number_field( 'redemption_step_points', __( 'Continuous step points', 'techzu-rewards' ), $settings['redemption_step_points'], '1' ); ?>
+                        <?php $this->number_field( 'redemption_step_discount', __( 'Continuous step discount amount', 'techzu-rewards' ), $settings['redemption_step_discount'], '0.01' ); ?>
+                        <?php $this->number_field( 'redemption_max_generated_steps', __( 'Max generated choices, 0 = continue automatically', 'techzu-rewards' ), $settings['redemption_max_generated_steps'], '1' ); ?>
+                    </div>
                     <?php $this->render_redemption_repeater( $redemption_tiers ); ?>
                 </section>
 
@@ -369,6 +375,39 @@ class Settings_Page {
                     <?php $this->render_faq_repeater( $faq_items ); ?>
                 </section>
 
+                <section class="tz-rewards-panel tz-rewards-panel--wide">
+                    <h2><?php esc_html_e( 'Customer email notifications', 'techzu-rewards' ); ?></h2>
+                    <p class="description"><?php esc_html_e( 'Send customers automatic emails when they join, earn points, use points, move membership tiers, receive manual admin point updates, or have points expiring soon.', 'techzu-rewards' ); ?></p>
+                    <div class="tz-rewards-fields-grid">
+                        <?php $this->checkbox_field( 'email_notifications_enabled', __( 'Enable all reward notification emails', 'techzu-rewards' ), $settings['email_notifications_enabled'] ); ?>
+                        <?php $this->checkbox_field( 'email_welcome_enabled', __( 'Email after account creation / Bronze assignment', 'techzu-rewards' ), $settings['email_welcome_enabled'] ); ?>
+                        <?php $this->checkbox_field( 'email_points_earned_enabled', __( 'Email when points are earned', 'techzu-rewards' ), $settings['email_points_earned_enabled'] ); ?>
+                        <?php $this->checkbox_field( 'email_points_used_enabled', __( 'Email when points are used', 'techzu-rewards' ), $settings['email_points_used_enabled'] ); ?>
+                        <?php $this->checkbox_field( 'email_tier_updated_enabled', __( 'Email when membership tier changes', 'techzu-rewards' ), $settings['email_tier_updated_enabled'] ); ?>
+                        <?php $this->checkbox_field( 'email_points_expiring_enabled', __( 'Email before points expire', 'techzu-rewards' ), $settings['email_points_expiring_enabled'] ); ?>
+                        <?php $this->checkbox_field( 'email_points_expired_enabled', __( 'Email when points expire', 'techzu-rewards' ), $settings['email_points_expired_enabled'] ); ?>
+                        <?php $this->checkbox_field( 'email_manual_adjustment_enabled', __( 'Email after manual admin balance update', 'techzu-rewards' ), $settings['email_manual_adjustment_enabled'] ); ?>
+                        <?php $this->number_field( 'email_points_expiry_days', __( 'Expiry soon reminder days', 'techzu-rewards' ), $settings['email_points_expiry_days'], '1' ); ?>
+                        <?php $this->text_field( 'email_brand_title', __( 'Email heading / brand title', 'techzu-rewards' ), $settings['email_brand_title'] ); ?>
+                        <?php $this->text_field( 'email_subject_welcome', __( 'Subject: welcome', 'techzu-rewards' ), $settings['email_subject_welcome'] ); ?>
+                        <?php $this->text_field( 'email_subject_points_earned', __( 'Subject: points earned', 'techzu-rewards' ), $settings['email_subject_points_earned'] ); ?>
+                        <?php $this->text_field( 'email_subject_points_used', __( 'Subject: points used', 'techzu-rewards' ), $settings['email_subject_points_used'] ); ?>
+                        <?php $this->text_field( 'email_subject_tier_updated', __( 'Subject: tier updated', 'techzu-rewards' ), $settings['email_subject_tier_updated'] ); ?>
+                        <?php $this->text_field( 'email_subject_points_expiring', __( 'Subject: points expiring soon', 'techzu-rewards' ), $settings['email_subject_points_expiring'] ); ?>
+                        <?php $this->text_field( 'email_subject_points_expired', __( 'Subject: points expired', 'techzu-rewards' ), $settings['email_subject_points_expired'] ); ?>
+                        <?php $this->text_field( 'email_subject_manual_adjustment', __( 'Subject: manual adjustment', 'techzu-rewards' ), $settings['email_subject_manual_adjustment'] ); ?>
+                    </div>
+                    <?php $this->textarea_field( 'email_intro_welcome', __( 'Intro: welcome / Bronze assignment', 'techzu-rewards' ), $settings['email_intro_welcome'] ); ?>
+                    <?php $this->textarea_field( 'email_intro_points_earned', __( 'Intro: points earned', 'techzu-rewards' ), $settings['email_intro_points_earned'] ); ?>
+                    <?php $this->textarea_field( 'email_intro_points_used', __( 'Intro: points used', 'techzu-rewards' ), $settings['email_intro_points_used'] ); ?>
+                    <?php $this->textarea_field( 'email_intro_tier_updated', __( 'Intro: tier updated', 'techzu-rewards' ), $settings['email_intro_tier_updated'] ); ?>
+                    <?php $this->textarea_field( 'email_intro_points_expiring', __( 'Intro: points expiring soon', 'techzu-rewards' ), $settings['email_intro_points_expiring'] ); ?>
+                    <?php $this->textarea_field( 'email_intro_points_expired', __( 'Intro: points expired', 'techzu-rewards' ), $settings['email_intro_points_expired'] ); ?>
+                    <?php $this->textarea_field( 'email_intro_manual_adjustment', __( 'Intro: manual adjustment', 'techzu-rewards' ), $settings['email_intro_manual_adjustment'] ); ?>
+                    <?php $this->textarea_field( 'email_footer_text', __( 'Email footer text', 'techzu-rewards' ), $settings['email_footer_text'] ); ?>
+                    <p class="description"><?php esc_html_e( 'Available merge tags: {site_name}, {first_name}, {display_name}, {points}, {points_label}, {balance}, {tier}, {old_tier}, {order_number}, {expiry_days}.', 'techzu-rewards' ); ?></p>
+                </section>
+
                 <section class="tz-rewards-panel">
                     <h2><?php esc_html_e( 'Visibility and design', 'techzu-rewards' ); ?></h2>
                     <?php $this->checkbox_field( 'show_catalog_hint', __( 'Show product/catalog earning hints', 'techzu-rewards' ), $settings['show_catalog_hint'] ); ?>
@@ -396,7 +435,7 @@ class Settings_Page {
                         <code>[tz_rewards_dashboard]</code>
                         <code>[tz_rewards_balance]</code>
                         <code>[tz_rewards_checkout_controls]</code>
-                        <p><?php esc_html_e( 'Elementor can use the shortcode widget, and this plugin also registers a native Techzu Rewards widget when Elementor is active.', 'techzu-rewards' ); ?></p>
+                        <p><?php esc_html_e( 'Elementor can use the shortcode widget, and this plugin also registers a native ElegantBliss Rewards widget when Elementor is active.', 'techzu-rewards' ); ?></p>
                     </div>
                 </section>
             </div>
@@ -455,7 +494,7 @@ class Settings_Page {
                         <div class="tz-rewards-customer-card__main">
                             <div>
                                 <h3><?php echo esc_html( $user->display_name ? $user->display_name : $user->user_login ); ?></h3>
-                                <p><?php echo esc_html( $user->user_email ); ?> · <?php echo esc_html( sprintf( __( 'User ID: %d', 'techzu-rewards' ), $user_id ) ); ?></p>
+                                <p><?php echo esc_html( $user->user_email ); ?> - <?php echo esc_html( sprintf( __( 'User ID: %d', 'techzu-rewards' ), $user_id ) ); ?></p>
                             </div>
                             <div class="tz-rewards-customer-card__stats">
                                 <span><strong><?php echo esc_html( number_format_i18n( $balance ) ); ?></strong><?php esc_html_e( 'Points', 'techzu-rewards' ); ?></span>
@@ -523,7 +562,7 @@ class Settings_Page {
                 </article>
                 <article>
                     <h3><?php esc_html_e( '4. Reward redemption', 'techzu-rewards' ); ?></h3>
-                    <p><?php esc_html_e( 'Customers can apply one available fixed voucher at cart or checkout. Redeemed points are deducted when checkout creates the order and restored if the order is cancelled, failed or refunded.', 'techzu-rewards' ); ?></p>
+                    <p><?php esc_html_e( 'Customers can apply a reward voucher at cart or checkout. In continuous mode, every 150 Bliss Points gives S$5 off and larger vouchers keep increasing in the same step. Fixed-tier mode is also available. Redeemed points are deducted when checkout creates the order and restored if the order is cancelled, failed or refunded.', 'techzu-rewards' ); ?></p>
                 </article>
                 <article>
                     <h3><?php esc_html_e( '5. Membership tiers', 'techzu-rewards' ); ?></h3>
@@ -539,16 +578,20 @@ class Settings_Page {
                 </article>
                 <article>
                     <h3><?php esc_html_e( '8. My Account and Elementor', 'techzu-rewards' ); ?></h3>
-                    <p><?php esc_html_e( 'Customers get a Rewards tab in My Account with balance, tier progress, birthday perk, vouchers, expiry lots and history. Elementor works through shortcodes and the native Techzu Rewards widget when Elementor is active.', 'techzu-rewards' ); ?></p>
+                    <p><?php esc_html_e( 'Customers get a Rewards tab in My Account with balance, how-to-earn guidance, tier progress, birthday perk, vouchers, expiry lots and history. Elementor works through shortcodes and the native ElegantBliss Rewards widget when Elementor is active.', 'techzu-rewards' ); ?></p>
+                </article>
+                <article>
+                    <h3><?php esc_html_e( '9. Emails and notifications', 'techzu-rewards' ); ?></h3>
+                    <p><?php esc_html_e( 'The plugin can email customers after account creation, point earning, point use, membership tier updates, manual admin balance changes, points expiring soon and points expired. Subjects, intro copy, footer text and each email type are editable from Settings.', 'techzu-rewards' ); ?></p>
                 </article>
             </div>
 
             <h3><?php esc_html_e( 'Shortcodes', 'techzu-rewards' ); ?></h3>
             <ul>
-                <li><code>[tz_rewards_program]</code> — <?php esc_html_e( 'public rewards programme page', 'techzu-rewards' ); ?></li>
-                <li><code>[tz_rewards_dashboard]</code> — <?php esc_html_e( 'logged-in customer reward dashboard', 'techzu-rewards' ); ?></li>
-                <li><code>[tz_rewards_balance]</code> — <?php esc_html_e( 'simple current balance text', 'techzu-rewards' ); ?></li>
-                <li><code>[tz_rewards_checkout_controls]</code> — <?php esc_html_e( 'reward and birthday controls for custom/Elementor checkout layouts', 'techzu-rewards' ); ?></li>
+                <li><code>[tz_rewards_program]</code> - <?php esc_html_e( 'public rewards programme page', 'techzu-rewards' ); ?></li>
+                <li><code>[tz_rewards_dashboard]</code> - <?php esc_html_e( 'logged-in customer reward dashboard', 'techzu-rewards' ); ?></li>
+                <li><code>[tz_rewards_balance]</code> - <?php esc_html_e( 'simple current balance text', 'techzu-rewards' ); ?></li>
+                <li><code>[tz_rewards_checkout_controls]</code> - <?php esc_html_e( 'reward and birthday controls for custom/Elementor checkout layouts', 'techzu-rewards' ); ?></li>
             </ul>
 
             <h3><?php esc_html_e( 'Developer hooks', 'techzu-rewards' ); ?></h3>
@@ -572,7 +615,7 @@ class Settings_Page {
         $birthday = $this->tier_manager->get_birthday( $user->ID );
         $manual   = $this->tier_manager->get_manual_tier( $user->ID );
         ?>
-        <h2><?php esc_html_e( 'Techzu Rewards', 'techzu-rewards' ); ?></h2>
+        <h2><?php esc_html_e( 'ElegantBliss Rewards', 'techzu-rewards' ); ?></h2>
         <table class="form-table" role="presentation">
             <tr><th><label for="tz_rewards_profile_balance"><?php esc_html_e( 'Point balance', 'techzu-rewards' ); ?></label></th><td><input type="number" min="0" step="1" name="tz_rewards_profile_balance" id="tz_rewards_profile_balance" value="<?php echo esc_attr( $balance ); ?>" class="regular-text"></td></tr>
             <tr><th><label for="tz_rewards_profile_birthday"><?php esc_html_e( 'Birthday', 'techzu-rewards' ); ?></label></th><td><input type="date" name="tz_rewards_profile_birthday" id="tz_rewards_profile_birthday" value="<?php echo esc_attr( $birthday ); ?>" class="regular-text"></td></tr>
@@ -657,6 +700,7 @@ class Settings_Page {
 
     protected function render_redemption_repeater( $tiers ) {
         ?>
+        <input type="hidden" name="<?php echo esc_attr( Settings::OPTION_KEY ); ?>[redemption_tiers_present]" value="yes">
         <div class="tz-repeater" data-repeater data-next-index="<?php echo esc_attr( count( $tiers ) ); ?>"><table class="widefat striped tz-repeater__table"><thead><tr><th><?php esc_html_e( 'Enabled', 'techzu-rewards' ); ?></th><th><?php esc_html_e( 'Required points', 'techzu-rewards' ); ?></th><th><?php esc_html_e( 'Voucher discount', 'techzu-rewards' ); ?></th><th><?php esc_html_e( 'Display label', 'techzu-rewards' ); ?></th><th><?php esc_html_e( 'Action', 'techzu-rewards' ); ?></th></tr></thead><tbody data-repeater-body><?php foreach ( $tiers as $index => $tier ) : $this->render_redemption_row( $index, $tier ); endforeach; ?></tbody></table><p><button type="button" class="button button-secondary" data-repeater-add="redemption"><?php esc_html_e( 'Add reward tier', 'techzu-rewards' ); ?></button></p><template data-repeater-template="redemption"><?php $this->render_redemption_row( '__index__', array( 'enabled' => 'yes', 'points' => '', 'voucher' => '', 'label' => '' ) ); ?></template></div>
         <?php
     }
@@ -669,6 +713,7 @@ class Settings_Page {
 
     protected function render_membership_repeater( $tiers ) {
         ?>
+        <input type="hidden" name="<?php echo esc_attr( Settings::OPTION_KEY ); ?>[membership_tiers_present]" value="yes">
         <div class="tz-repeater" data-repeater data-next-index="<?php echo esc_attr( count( $tiers ) ); ?>"><table class="widefat striped tz-repeater__table"><thead><tr><th><?php esc_html_e( 'Enabled', 'techzu-rewards' ); ?></th><th><?php esc_html_e( 'Key', 'techzu-rewards' ); ?></th><th><?php esc_html_e( 'Tier name', 'techzu-rewards' ); ?></th><th><?php esc_html_e( 'Qualification text', 'techzu-rewards' ); ?></th><th><?php esc_html_e( 'Spend threshold', 'techzu-rewards' ); ?></th><th><?php esc_html_e( 'Birthday %', 'techzu-rewards' ); ?></th><th><?php esc_html_e( 'Action', 'techzu-rewards' ); ?></th></tr></thead><tbody data-repeater-body><?php foreach ( $tiers as $index => $tier ) : $this->render_membership_row( $index, $tier ); endforeach; ?></tbody></table><p><button type="button" class="button button-secondary" data-repeater-add="membership"><?php esc_html_e( 'Add membership tier', 'techzu-rewards' ); ?></button></p><template data-repeater-template="membership"><?php $this->render_membership_row( '__index__', array( 'enabled' => 'yes', 'key' => '', 'name' => '', 'qualification' => '', 'spend_threshold' => '', 'birthday_discount' => '' ) ); ?></template></div>
         <?php
     }
@@ -681,6 +726,7 @@ class Settings_Page {
 
     protected function render_faq_repeater( $items ) {
         ?>
+        <input type="hidden" name="<?php echo esc_attr( Settings::OPTION_KEY ); ?>[faq_items_present]" value="yes">
         <h3><?php esc_html_e( 'FAQ items', 'techzu-rewards' ); ?></h3><div class="tz-repeater" data-repeater data-next-index="<?php echo esc_attr( count( $items ) ); ?>"><table class="widefat striped tz-repeater__table"><thead><tr><th><?php esc_html_e( 'Question', 'techzu-rewards' ); ?></th><th><?php esc_html_e( 'Answer', 'techzu-rewards' ); ?></th><th><?php esc_html_e( 'Action', 'techzu-rewards' ); ?></th></tr></thead><tbody data-repeater-body><?php foreach ( $items as $index => $item ) : $this->render_faq_row( $index, $item ); endforeach; ?></tbody></table><p><button type="button" class="button button-secondary" data-repeater-add="faq"><?php esc_html_e( 'Add FAQ', 'techzu-rewards' ); ?></button></p><template data-repeater-template="faq"><?php $this->render_faq_row( '__index__', array( 'question' => '', 'answer' => '' ) ); ?></template></div>
         <?php
     }

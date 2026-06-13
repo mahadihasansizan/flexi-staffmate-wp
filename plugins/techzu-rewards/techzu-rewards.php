@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin Name:       Techzu Rewards for WooCommerce
+ * Plugin Name:       elegantbliss Rewards System
  * Plugin URI:        https://techzu.site/
- * Description:       Complete WooCommerce loyalty programme with points, fixed reward vouchers, membership tiers, birthday perks, point expiry, customer controls, Elementor support and a built-in Guide app.
- * Version:           2.1.0
+ * Description:       Complete WooCommerce rewards system for Elegant Bliss with Bliss Points, continuous vouchers, membership tiers, birthday perks, expiry emails, customer controls, Elementor support and a built-in Guide app.
+ * Version:           2.2.1
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Requires Plugins:  woocommerce
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'TZ_REWARDS_VERSION', '2.1.0' );
+define( 'TZ_REWARDS_VERSION', '2.2.1' );
 define( 'TZ_REWARDS_PLUGIN_FILE', __FILE__ );
 define( 'TZ_REWARDS_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'TZ_REWARDS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

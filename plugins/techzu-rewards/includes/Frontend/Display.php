@@ -198,6 +198,14 @@ class Display {
             TZ_REWARDS_VERSION
         );
 
+        wp_enqueue_script(
+            'tz-rewards-frontend',
+            TZ_REWARDS_PLUGIN_URL . 'assets/js/frontend.js',
+            array(),
+            TZ_REWARDS_VERSION,
+            true
+        );
+
         $custom_css = sprintf(
             ':root{--tz-rewards-accent:%1$s;--tz-rewards-background:%2$s;--tz-rewards-surface:%3$s;--tz-rewards-border:%4$s;--tz-rewards-text:%5$s;--tz-rewards-muted:%6$s;--tz-rewards-radius:%7$dpx;--tz-rewards-max-width:%8$dpx;}',
             esc_html( $this->settings->get( 'frontend_accent', '#2b2118' ) ),
@@ -275,11 +283,21 @@ class Display {
             return;
         }
 
-        echo '<tr class="tz-rewards-checkout-row"><td colspan="2">';
+        $available = $this->redemption_manager->get_available_redemptions_for_current_user( false );
+        $coupons   = $this->redemption_manager->get_user_reward_coupons( get_current_user_id() );
+        if ( empty( $available ) && empty( $coupons ) ) {
+            return;
+        }
+
+        ob_start();
         echo '<div class="tz-rewards-checkout-stack">';
         $this->render_redemption_panel_inner();
         $this->render_birthday_panel_inner();
         echo '</div>';
+        $html = (string) ob_get_clean();
+
+        echo '<tr class="tz-rewards-checkout-row"><td colspan="2">';
+        echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         echo '</td></tr>';
     }
 
@@ -290,54 +308,27 @@ class Display {
      */
     protected function render_redemption_panel_inner() {
         $balance    = $this->points_manager->get_balance( get_current_user_id() );
-        $available  = $this->redemption_manager->get_available_redemptions_for_current_user();
-        $active     = $this->redemption_manager->get_active_redemption();
+        $available  = $this->redemption_manager->get_available_redemptions_for_current_user( false );
+        $coupons    = $this->redemption_manager->get_user_reward_coupons( get_current_user_id() );
         $point_name = $this->settings->get( 'points_label', 'Bliss Points' );
+
+        if ( empty( $available ) && empty( $coupons ) ) {
+            return;
+        }
 
         echo '<div class="tz-rewards-card tz-rewards-card--checkout">';
         echo '<div class="tz-rewards-card__header">';
-        echo '<h3 class="tz-rewards-card__title">' . esc_html__( 'Reward voucher', 'techzu-rewards' ) . '</h3>';
+        echo '<h3 class="tz-rewards-card__title">' . esc_html__( 'Reward coupon', 'techzu-rewards' ) . '</h3>';
         echo '<span class="tz-rewards-badge">' . esc_html( sprintf( __( '%1$d %2$s available', 'techzu-rewards' ), $balance, $point_name ) ) . '</span>';
         echo '</div>';
 
-        if ( ! empty( $active['points'] ) ) {
-            echo '<p class="tz-rewards-card__text tz-rewards-card__text--strong">';
-            echo esc_html( sprintf( __( 'Currently applied: %1$d %2$s for %3$s off.', 'techzu-rewards' ), (int) $active['points'], $point_name, wp_strip_all_tags( wc_price( (float) $active['discount'] ) ) ) );
-            echo '</p>';
-        }
-
         if ( ! empty( $available ) ) {
-            echo '<form method="post" class="tz-rewards-form">';
-            wp_nonce_field( Redemption_Manager::NONCE_ACTION );
-            echo '<input type="hidden" name="tz_rewards_action" value="apply_redemption">';
-            echo '<label class="screen-reader-text" for="tz_reward_tier">' . esc_html__( 'Choose a reward voucher', 'techzu-rewards' ) . '</label>';
-            echo '<select id="tz_reward_tier" name="tz_reward_tier" class="tz-rewards-form__select">';
-
-            foreach ( $available as $tier ) {
-                printf(
-                    '<option value="%1$d" %2$s>%3$s</option>',
-                    (int) $tier['points'],
-                    selected( ! empty( $active['points'] ) && (int) $active['points'] === (int) $tier['points'], true, false ),
-                    esc_html( sprintf( __( '%1$d %2$s -> %3$s voucher', 'techzu-rewards' ), (int) $tier['points'], $point_name, wp_strip_all_tags( wc_price( (float) $tier['voucher'] ) ) ) )
-                );
-            }
-
-            echo '</select>';
-            echo '<button type="submit" class="button alt tz-rewards-form__button">' . esc_html__( 'Apply voucher', 'techzu-rewards' ) . '</button>';
-            echo '</form>';
-        } else {
-            echo '<p class="tz-rewards-card__text">' . esc_html__( 'No reward voucher is available for the current balance and cart amount.', 'techzu-rewards' ) . '</p>';
+            echo '<p class="tz-rewards-card__text tz-rewards-card__text--strong">' . esc_html__( 'You got points. You can convert them into a coupon.', 'techzu-rewards' ) . '</p>';
+            $this->render_coupon_conversion_form( $available, esc_html__( 'Convert to coupon', 'techzu-rewards' ), true );
+            echo '<p class="tz-rewards-card__note">' . esc_html__( 'Converted coupons are not added automatically. Copy the coupon code and apply it manually in the WooCommerce coupon field when you want to use it.', 'techzu-rewards' ) . '</p>';
         }
 
-        if ( ! empty( $active['points'] ) ) {
-            echo '<form method="post" class="tz-rewards-form tz-rewards-form--secondary">';
-            wp_nonce_field( Redemption_Manager::NONCE_ACTION );
-            echo '<input type="hidden" name="tz_rewards_action" value="remove_redemption">';
-            echo '<button type="submit" class="button tz-rewards-form__button">' . esc_html__( 'Remove voucher', 'techzu-rewards' ) . '</button>';
-            echo '</form>';
-        }
-
-        echo '<p class="tz-rewards-card__note">' . esc_html__( 'Only one reward, birthday discount, voucher or promotional code can be used per order.', 'techzu-rewards' ) . '</p>';
+        $this->render_user_coupon_codes( $coupons, true );
         echo '</div>';
     }
 
@@ -554,6 +545,12 @@ class Display {
             return '<p>' . esc_html__( 'Rewards checkout controls are available when the WooCommerce cart is loaded.', 'techzu-rewards' ) . '</p>';
         }
 
+        $available = $this->redemption_manager->get_available_redemptions_for_current_user( false );
+        $coupons   = $this->redemption_manager->get_user_reward_coupons( get_current_user_id() );
+        if ( empty( $available ) && empty( $coupons ) ) {
+            return '';
+        }
+
         ob_start();
         echo '<div class="tz-rewards-checkout-stack tz-rewards-checkout-stack--shortcode">';
         $this->render_redemption_panel_inner();
@@ -583,7 +580,7 @@ class Display {
      * @return void
      */
     protected function render_program_page() {
-        $redemptions = $this->calculator->get_redemption_tiers( true );
+        $redemptions = $this->calculator->get_redemption_display_tiers();
         $tiers       = $this->tier_manager->get_tiers();
         $faqs        = $this->settings->get( 'faq_items', array() );
         ?>
@@ -611,6 +608,9 @@ class Display {
                     </table>
                 </div>
                 <p class="tz-rewards-program__note"><?php esc_html_e( 'Points are awarded based on the final paid product amount, excluding delivery fees, discounts, vouchers, cancelled orders and refunded items.', 'techzu-rewards' ); ?></p>
+                <?php if ( 'continuous' === $this->settings->get( 'redemption_mode', 'continuous' ) ) : ?>
+                    <p class="tz-rewards-program__note"><?php echo esc_html( sprintf( __( 'Voucher conversion continues automatically: every %1$d %2$s gives %3$s off.', 'techzu-rewards' ), (int) $this->settings->get( 'redemption_step_points', 150 ), $this->settings->get( 'points_label', 'Bliss Points' ), wp_strip_all_tags( wc_price( (float) $this->settings->get( 'redemption_step_discount', 5 ) ) ) ) ); ?></p>
+                <?php endif; ?>
 
                 <div class="tz-rewards-program__section-title"><strong><?php echo esc_html( $this->settings->get( 'tiers_section_title', 'Membership Tiers' ) ); ?></strong><span><?php echo esc_html( $this->settings->get( 'tiers_section_subtitle', '' ) ); ?></span></div>
                 <div class="tz-rewards-table-wrap">
@@ -702,17 +702,27 @@ class Display {
                 </section>
             </div>
 
+            <section class="tz-rewards-card tz-rewards-card--how-to-earn">
+                <div class="tz-rewards-card__header"><h3 class="tz-rewards-card__title"><?php esc_html_e( 'How to earn and use rewards', 'techzu-rewards' ); ?></h3></div>
+                <div class="tz-rewards-steps">
+                    <div><strong><?php esc_html_e( 'Earn', 'techzu-rewards' ); ?></strong><span><?php echo esc_html( sprintf( __( 'Spend S$1 on eligible products = %1$s %2$s.', 'techzu-rewards' ), wc_format_decimal( (float) $this->settings->get( 'points_per_dollar', 1 ), 2 ), $this->settings->get( 'point_label_singular', 'Bliss Point' ) ) ); ?></span></div>
+                    <div><strong><?php esc_html_e( 'Redeem', 'techzu-rewards' ); ?></strong><span><?php echo esc_html( sprintf( __( 'Every %1$d %2$s = %3$s off. Larger vouchers continue in the same step.', 'techzu-rewards' ), (int) $this->settings->get( 'redemption_step_points', 150 ), $this->settings->get( 'points_label', 'Bliss Points' ), wp_strip_all_tags( wc_price( (float) $this->settings->get( 'redemption_step_discount', 5 ) ) ) ) ); ?></span></div>
+                    <div><strong><?php esc_html_e( 'Tier', 'techzu-rewards' ); ?></strong><span><?php esc_html_e( 'Bronze starts at account creation. Silver and Gold update automatically from eligible spend within the 12-month tier window.', 'techzu-rewards' ); ?></span></div>
+                    <div><strong><?php esc_html_e( 'Expiry', 'techzu-rewards' ); ?></strong><span><?php echo esc_html( sprintf( __( 'Points are valid for %d months from the date earned.', 'techzu-rewards' ), (int) $this->settings->get( 'points_expiry_months', 12 ) ) ); ?></span></div>
+                </div>
+                <p class="tz-rewards-card__note"><?php esc_html_e( 'Points are based on the final paid eligible product amount and exclude shipping, cancelled orders and refunded items.', 'techzu-rewards' ); ?></p>
+            </section>
+
             <section class="tz-rewards-card">
-                <div class="tz-rewards-card__header"><h3 class="tz-rewards-card__title"><?php esc_html_e( 'Available reward vouchers', 'techzu-rewards' ); ?></h3></div>
+                <div class="tz-rewards-card__header"><h3 class="tz-rewards-card__title"><?php esc_html_e( 'Convert points to coupon', 'techzu-rewards' ); ?></h3></div>
                 <?php if ( ! empty( $available ) ) : ?>
-                    <div class="tz-rewards-pill-list">
-                        <?php foreach ( $available as $reward ) : ?>
-                            <span class="tz-rewards-pill"><?php echo esc_html( sprintf( __( '%1$d %2$s = %3$s off', 'techzu-rewards' ), (int) $reward['points'], $this->settings->get( 'points_label', 'Bliss Points' ), wp_strip_all_tags( wc_price( (float) $reward['voucher'] ) ) ) ); ?></span>
-                        <?php endforeach; ?>
-                    </div>
+                    <p class="tz-rewards-card__text tz-rewards-card__text--strong"><?php esc_html_e( 'You got points. You can convert them into a WooCommerce coupon.', 'techzu-rewards' ); ?></p>
+                    <?php $this->render_coupon_conversion_form( $available, __( 'Convert to coupon', 'techzu-rewards' ) ); ?>
+                    <p class="tz-rewards-card__note"><?php esc_html_e( 'After conversion, the coupon is saved to your account. It is assigned only to you and must be applied manually at checkout.', 'techzu-rewards' ); ?></p>
                 <?php else : ?>
-                    <p class="tz-rewards-card__text"><?php esc_html_e( 'Keep shopping to unlock your first voucher tier.', 'techzu-rewards' ); ?></p>
+                    <p class="tz-rewards-card__text"><?php esc_html_e( 'Keep shopping to unlock your first coupon conversion.', 'techzu-rewards' ); ?></p>
                 <?php endif; ?>
+                <?php $this->render_user_coupon_codes( $this->redemption_manager->get_user_reward_coupons( $user_id ), false ); ?>
             </section>
 
             <section class="tz-rewards-card">
@@ -769,6 +779,97 @@ class Display {
         </div>
         <?php
         return (string) ob_get_clean();
+    }
+
+    /**
+     * Render the coupon conversion form.
+     *
+     * @param array<int,array<string,mixed>> $available Available conversion options.
+     * @param string                         $button_label Button label.
+     * @param bool                           $as_modal Whether to show the form in a popup.
+     * @return void
+     */
+    protected function render_coupon_conversion_form( $available, $button_label, $as_modal = false ) {
+        if ( empty( $available ) ) {
+            return;
+        }
+
+        $point_name = $this->settings->get( 'points_label', 'Bliss Points' );
+        $target_id  = 'tz_rewards_coupon_modal_' . wp_rand( 1000, 999999 );
+
+        if ( $as_modal ) {
+            echo '<button type="button" class="button alt tz-rewards-form__button" data-tz-rewards-open="' . esc_attr( $target_id ) . '">' . esc_html( $button_label ) . '</button>';
+            echo '<div id="' . esc_attr( $target_id ) . '" class="tz-rewards-modal" hidden>';
+            echo '<div class="tz-rewards-modal__overlay" data-tz-rewards-close></div>';
+            echo '<div class="tz-rewards-modal__dialog" role="dialog" aria-modal="true" aria-label="' . esc_attr__( 'Convert points to coupon', 'techzu-rewards' ) . '">';
+            echo '<button type="button" class="tz-rewards-modal__close" data-tz-rewards-close aria-label="' . esc_attr__( 'Close', 'techzu-rewards' ) . '">&times;</button>';
+            echo '<h4 class="tz-rewards-card__title">' . esc_html__( 'Convert points to coupon', 'techzu-rewards' ) . '</h4>';
+        }
+
+        echo '<form method="post" class="tz-rewards-form tz-rewards-form--coupon-convert">';
+        wp_nonce_field( Redemption_Manager::NONCE_ACTION );
+        echo '<input type="hidden" name="tz_rewards_action" value="convert_coupon">';
+        echo '<label class="screen-reader-text" for="tz_reward_tier">' . esc_html__( 'Choose points to convert', 'techzu-rewards' ) . '</label>';
+        echo '<select id="tz_reward_tier" name="tz_reward_tier" class="tz-rewards-form__select">';
+
+        foreach ( $available as $tier ) {
+            printf(
+                '<option value="%1$d">%2$s</option>',
+                (int) $tier['points'],
+                esc_html( sprintf( __( '%1$d %2$s -> %3$s coupon', 'techzu-rewards' ), (int) $tier['points'], $point_name, wp_strip_all_tags( wc_price( (float) $tier['voucher'] ) ) ) )
+            );
+        }
+
+        echo '</select>';
+        echo '<button type="submit" class="button alt tz-rewards-form__button">' . esc_html( $button_label ) . '</button>';
+        echo '</form>';
+
+        if ( $as_modal ) {
+            echo '</div></div>';
+        }
+    }
+
+    /**
+     * Render saved reward coupon codes for the current user.
+     *
+     * @param array<int,array<string,mixed>> $coupons Coupon records.
+     * @param bool                           $compact Compact display.
+     * @return void
+     */
+    protected function render_user_coupon_codes( $coupons, $compact = false ) {
+        if ( empty( $coupons ) ) {
+            return;
+        }
+
+        echo '<div class="tz-rewards-coupon-list">';
+        echo '<h4 class="tz-rewards-card__title">' . esc_html__( 'Your saved coupon codes', 'techzu-rewards' ) . '</h4>';
+        echo '<div class="tz-rewards-table-wrap">';
+        echo '<table class="tz-rewards-table tz-rewards-table--compact">';
+        echo '<thead><tr><th>' . esc_html__( 'Coupon code', 'techzu-rewards' ) . '</th><th>' . esc_html__( 'Value', 'techzu-rewards' ) . '</th>';
+        if ( ! $compact ) {
+            echo '<th>' . esc_html__( 'Points', 'techzu-rewards' ) . '</th><th>' . esc_html__( 'Created', 'techzu-rewards' ) . '</th>';
+        }
+        echo '<th>' . esc_html__( 'Status', 'techzu-rewards' ) . '</th></tr></thead><tbody>';
+
+        foreach ( $coupons as $coupon ) {
+            $code     = isset( $coupon['code'] ) ? (string) $coupon['code'] : '';
+            $discount = isset( $coupon['discount'] ) ? (float) $coupon['discount'] : 0;
+            $points   = isset( $coupon['points'] ) ? (int) $coupon['points'] : 0;
+            $created  = ! empty( $coupon['created_at'] ) ? date_i18n( get_option( 'date_format' ), strtotime( $coupon['created_at'] ) ) : '-';
+            $status   = isset( $coupon['status'] ) ? (string) $coupon['status'] : __( 'Available', 'techzu-rewards' );
+
+            echo '<tr>';
+            echo '<td><code>' . esc_html( $code ) . '</code></td>';
+            echo '<td>' . esc_html( wp_strip_all_tags( wc_price( $discount ) ) ) . '</td>';
+            if ( ! $compact ) {
+                echo '<td>' . esc_html( $points ) . '</td>';
+                echo '<td>' . esc_html( $created ) . '</td>';
+            }
+            echo '<td>' . esc_html( $status ) . '</td>';
+            echo '</tr>';
+        }
+
+        echo '</tbody></table></div></div>';
     }
 
     /**

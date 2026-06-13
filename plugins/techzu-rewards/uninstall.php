@@ -1,6 +1,6 @@
 <?php
 /**
- * Uninstall Techzu Rewards for WooCommerce.
+ * Uninstall elegantbliss Rewards System.
  *
  * Customer reward data is intentionally preserved unless the site owner defines
  * TECHZU_REWARDS_REMOVE_DATA as true before uninstalling.
